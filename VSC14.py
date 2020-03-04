@@ -1,4 +1,22 @@
 import wx
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+class DataGen(object):
+    
+    def __init__(self, init = np.zeros((53,2))):
+        self.data = self.init = init
+        
+    def loadData(self, fileName):
+        fileName = MainWindow.onOpenFile(self, wx.ID_ANY)
+        data = np.loadtxt(fileName, delimiter = '\t', skiprows = 2)
+        data = data [:,0:2]
+    #print(data)
+        return data
 
 class MainWindow(wx.Frame):
     
@@ -6,12 +24,14 @@ class MainWindow(wx.Frame):
         wx.Frame.__init__(self, None ,wx.ID_ANY, title=title, size=(1200,650), pos=(100,100))
         self.Centre()
 
+        self.currentDirectory = os.getcwd()
+
         #Defining status bar
         self.statusBar = self.CreateStatusBar()
         self.statusBar.SetStatusText("Welcome to OFET transfer curve analysis!")
 
         #These are the buttons at top of the frame for Menu Icons
-        self.btn = wx.Button(self,-1,"File", pos=(20,20))
+        openFileDlgBtn = wx.Button(self,-1,"File", pos=(20,20))
         self.btn = wx.Button(self,-1,"Edit", pos=(120,20))
         self.btn = wx.Button(self,-1,"View", pos=(220,20))
         self.btn = wx.Button(self,-1,"Help", pos=(320,20))
@@ -21,7 +41,6 @@ class MainWindow(wx.Frame):
         #Drawing line to seperate graphing area from settings icons
         wx.StaticLine(self, pos=(1, 530), size=(1200,10))
         
-
         #These are the buttons at bottoms of the frame for other functions
         self.btnInp = wx.Button(self,-1,"Input Values", pos=(400,560))
         self.btnCal = wx.Button(self,-1,"Calculate", pos=(500,560))
@@ -36,7 +55,40 @@ class MainWindow(wx.Frame):
         
         self.btnInp.Bind(wx.EVT_BUTTON, self.GetData)
         self.btnExi.Bind(wx.EVT_BUTTON, self.OnQuit)
+
+        openFileDlgBtn.Bind(wx.EVT_BUTTON, self.onOpenFile)
         
+
+
+    def onOpenFile(self, event):
+        self.condition = 1
+        self.dirname = ''
+        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.*", wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.filename = dlg.GetFilename()
+            self.dirname = dlg.GetDirectory()
+            self.fileName = os.path.join(self.dirname, self.filename)
+        dlg.Destroy()
+        def draw(self):
+            if self.condition == 1:
+                print('helo')
+                data = np.loadtxt(self.fileName, delimiter = '\t', skiprows = 2)
+                data = data [:,0:2]
+                x = data[:, 0]
+                y = data[:, 1]
+                self.figure = Figure(figsize=(5,4), frameon=False, constrained_layout=False)
+                
+                self.axes = self.figure.add_subplot(111)
+                self.canvas = FigureCanvas(self, -1, self.figure)
+                self.axes.set_xlabel("Vg (Volt)")
+                self.axes.set_ylabel("I")
+                self.axes.plot(x, y)
+                
+                print(data)
+            else:
+                pass
+        draw(self)
+        return self.fileName
 
     def GetData(self, event):
         
@@ -69,6 +121,8 @@ class MainWindow(wx.Frame):
         self.Centre()
         self.Show()
 
+    
+
     def OnQuit(self, event):
         #self.result_W = None
         self.Destroy()
@@ -81,6 +135,11 @@ class MainWindow(wx.Frame):
         self.result_Type = self.Type.GetValue()
 
         self.Destroy()
+
+class mainPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self,parent=parent, style = wx.BORDER_RAISED, size=(350,450))
+        Test=wx.StaticText(self, -1, ("<Include raw plot here>"))
 
     
 
