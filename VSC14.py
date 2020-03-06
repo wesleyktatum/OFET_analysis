@@ -23,7 +23,7 @@ class MainWindow(wx.Frame):
     def __init__ (self, parent,id, title):
         wx.Frame.__init__(self, None ,wx.ID_ANY, title=title, size=(1200,650), pos=(100,100))
         self.Centre()
-
+        
         self.currentDirectory = os.getcwd()
 
         #Defining status bar
@@ -57,6 +57,7 @@ class MainWindow(wx.Frame):
         self.btnExi.Bind(wx.EVT_BUTTON, self.OnQuit)
 
         openFileDlgBtn.Bind(wx.EVT_BUTTON, self.onOpenFile)
+
         
 
 
@@ -71,24 +72,27 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
         def draw(self):
             if self.condition == 1:
-                print('helo')
+                
+                
                 data = np.loadtxt(self.fileName, delimiter = '\t', skiprows = 2)
                 data = data [:,0:2]
                 x = data[:, 0]
                 y = data[:, 1]
-                self.figure = Figure(figsize=(5,4), frameon=False, constrained_layout=False)
                 
+                self.figure = Figure(figsize=(5.5,4.5), frameon=True, constrained_layout=False)
                 self.axes = self.figure.add_subplot(111)
                 self.canvas = FigureCanvas(self, -1, self.figure)
-                self.canvas.Position=(50,95)
+                self.canvas.Position=(25,75)
+                self.axes.set_title('Id Vg')
                 self.axes.set_xlabel("Vg (Volt)")
-                self.axes.set_ylabel("I")
+                self.axes.set_ylabel("Id (Amps)")
                 self.axes.plot(x, y)
                 
-                print(data)
+                
             else:
                 pass
         draw(self)
+        self.axes.ploit(1,1)
         return self.fileName
 
     def GetData(self, event):
@@ -149,6 +153,7 @@ class MyApp(wx.App):
     def OnInit(self):
         frame = MainWindow(None, -1, "Transfer Curve Analysis using WxPYTHON")
         frame.Show(True)
+        
         return True
 
 app = MyApp(0)
