@@ -92,7 +92,7 @@ class MainWindow(wx.Frame):
             else:
                 pass
         draw(self)
-        self.axes.ploit(1,1)
+        self.axes.plot(1,1)
         return self.fileName
 
     def GetData(self, event):
