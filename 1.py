@@ -224,12 +224,12 @@ class Zoom(wx.Panel):
 
         # Now we have portion of the data as zX (voltage) and zY ( Current), 
         # lets split 20% of the data to test and 80% to train
-        x_train, x_test, y_train, y_test = train_test_split(zXr, zY, test_size = 0.20, random_state = 1)
+        #x_train, x_test, y_train, y_test = train_test_split(zXr, zY, test_size = 0.20, random_state = 1)
         
         #create a linear regression model object
         regression_model = LinearRegression()
         #pass trhough the x_train &y_train data set to train the model
-        regression_model.fit(x_train, y_train)
+        regression_model.fit(zXr, zY)
 
         # get coefficient of our model and the intercept
         intercept = regression_model.intercept_
@@ -239,11 +239,15 @@ class Zoom(wx.Panel):
         print ("the intercept of our model is",intercept)
 
         #testing prediction 
-        y_pred = regression_model.predict(x_test)
+        y_pred = regression_model.predict(zXr)
 
 
         # Plot outputs
-        self.axes.plot(x_test, y_pred, color='blue', linewidth=2)
+        self.axes.plot(zXr, y_pred, color='blue', linewidth=2)
+        
+        yline= coefficient * Window.x + intercept
+        self.axes.plot(Window.x, yline, '-r')
+    
         
 
         self.canvas.draw()
