@@ -50,10 +50,14 @@ class Window(wx.Frame):
 
         # binding my buttons in this section of code
         self.openFileDlgBtn.Bind(wx.EVT_BUTTON, self.onOpenFile)
+
         self.btnInp.Bind(wx.EVT_BUTTON, self.GetData)
         self.btnExi.Bind(wx.EVT_BUTTON, self.OnClose)
         self.btnRes.Bind(wx.EVT_BUTTON, self.OnReset)
+        self.btnCal.Bind(wx.EVT_BUTTON, self.GetResult)
+        
 
+        #needs to be binded to input values buttons    
         self.params = [50, 1000, 1, -12, 'p-type']
 
     # function to open a file
@@ -81,6 +85,29 @@ class Window(wx.Frame):
     def GetData(self, event):
         inputs = InputDialog(parent=self)
         self.params = inputs.report_values()
+
+    #print the results
+    def GetResult(self, event):
+        #Result = ResultDialog(parent=self)
+
+        self.result = wx.StaticBox(self, label='<Results>',
+                                     pos=(20, 580), size=(1150, 100))
+        
+        wx.StaticText(self,-1,label = "mu_lin : ", pos = (140,600) )
+        wx.StaticText(self,-1,label = "r_lin : ", pos = (340,600) )
+        wx.StaticText(self,-1,label = "on/off : ", pos = (540,600) )
+        wx.StaticText(self,-1,label = "Vth : ", pos = (740,600) )
+
+        #get all the values from CalcPanel and store them as string as static text only prints string
+        mu_lin = str(CalcPanel.values[0])
+        r_lin = str(CalcPanel.values[1])
+        onoff = str(CalcPanel.values[2])
+        Vth = str(CalcPanel.values[3])
+        
+        wx.StaticText(self,-1,label = (mu_lin), pos = (140,620))
+        wx.StaticText(self,-1,label = (r_lin), pos = (340,620))
+        wx.StaticText(self,-1,label = (onoff), pos = (540,620))
+        wx.StaticText(self,-1,label = (Vth), pos = (740,620))
 
     # Function to quit the main screen
     def OnClose(self, event):
@@ -220,6 +247,9 @@ class Zoom(wx.Panel):
         # Plot outputs
         self.axes.plot(zXr, y_pred, color='blue', linewidth=2)
 
+        yline= coefficient * Window.x + intercept
+        self.axes.plot(Window.x, yline, '-r')
+
         self.canvas.draw()
         self.Refresh()
 
@@ -229,39 +259,40 @@ class Zoom(wx.Panel):
 class InputDialog(wx.Dialog):
     def __init__(self, parent):
 
-        wx.Dialog.__init__(self, None, wx.ID_ANY, "Input Data",
-                           size=(350, 320))
+        wx.Dialog.__init__(self, None, wx.ID_ANY, "Input  device parameters",
+                           size=(450, 320))
 
         self.result_L = 50
         self.result_W = 1000
-        self.result_Ci = 1
-        self.result_Vd = -12
+        self.result_Ci = 11.5 * 10**-9
+        self.result_Vd = -20
         self.result_Type = 'p - type'
 
         # creating all the text boxes for inputting values
-        self.Lvalue = wx.StaticText(self, wx.ID_ANY, label="l", pos=(20, 20))
-        self.L = wx.TextCtrl(self, value=str(self.result_L), pos=(110, 20),
+        self.Lvalue = wx.StaticText(self, wx.ID_ANY, label="Length of the channel:", pos=(20, 20))
+        self.L = wx.TextCtrl(self, value=str(self.result_L), pos=(190, 20),
                              size=(200, -1))
 
-        self.Wvalue = wx.StaticText(self, wx.ID_ANY, label="W", pos=(20, 60))
-        self.W = wx.TextCtrl(self, value=str(self.result_W), pos=(110, 60),
+        self.Wvalue = wx.StaticText(self, wx.ID_ANY, label="Width of the channel:", pos=(20, 60))
+        self.W = wx.TextCtrl(self, value=str(self.result_W), pos=(190, 60),
                              size=(200, -1))
 
-        self.Civalue = wx.StaticText(self, wx.ID_ANY, label="Ci",
+        self.Civalue = wx.StaticText(self, wx.ID_ANY, label="Gate channel capacitance:",
                                      pos=(20, 100))
-        self.Ci = wx.TextCtrl(self, value=str(self.result_Ci), pos=(110, 100),
+        self.Ci = wx.TextCtrl(self, value=str(self.result_Ci), pos=(190, 100),
                               size=(200, -1))
 
-        self.Vdvalue = wx.StaticText(self, wx.ID_ANY, label="Vd",
+        self.Vdvalue = wx.StaticText(self, wx.ID_ANY, label="Drain Voltage:",
                                      pos=(20, 140))
-        self.Vd = wx.TextCtrl(self, value=str(self.result_Vd), pos=(110, 140),
+        self.Vd = wx.TextCtrl(self, value=str(self.result_Vd), pos=(190, 140),
                               size=(200, -1))
 
-        self.Tvalue = wx.StaticText(self, wx.ID_ANY, label="Type",
+        self.Tvalue = wx.StaticText(self, wx.ID_ANY, label="Type of Semi-conductor:",
                                     pos=(20, 180))
         self.Type = wx.ComboBox(self,
-                                choices=['p - Type', 'n - Type', 'Ambipolar'],
-                                pos=(110, 180), size=(200, -1))
+                                choices=['p-type', 'n-type', 'ambipolar'],
+                                pos=(190, 180), size=(200, -1))
+
         # creating and linking Save and Exit buttons
         self.saveButton = wx.Button(self, wx.ID_ANY, label="Save",
                                     pos=(55, 240))
@@ -313,43 +344,26 @@ class CalcPanel():
 
         self.params = parent.params
 
-        self.L = self.params[0]
-        self.W = self.params[1]
-        self.Ci = self.params[2]
-        self.Vd = self.params[3]
-        self.Type = self.params[4]
+        self.result_L = self.params[0]
+        self.result_W = self.params[1]
+        self.result_Ci = self.params[2]
+        self.result_Vd = self.params[3]
+        self.result_Type = self.params[4]
 
         print('params:', self.params)
-#         Window.SaveConnString(self.L, self.W, self.Ci, self.Vd, self.Type)
-
-#     def idealreg_linear(self, parent):
-#         Vg_range = Window.x
-#         absId_range = Window.y
-#         ideal_abs_slope, ideal_abs_intercept, r_value, p_value, std_err =
-#           stats.linregress(Vg_range, absId_range)
-
-#         for x in Vg_range:
-#             ideal_absId.append(ideal_abs_slope * Vg_range[x] +
-#                                ideal_abs_intercept)
-
-#         return ideal_abs_slope, ideal_abs_intercept, ideal_absId
 
     def calculate_linear_output(self):
 
-        # ideal_absId = []
 
         xRange = [x for x in Window.x if (x >= self.x1) & (x <= self.x2)]
         # Obtain first index of xRange
+        
         xStart = np.where(xRange[0] == Window.x)
         # Obtain last index of xRange
+        
         xEnd = np.where(xRange[-1] == Window.x)
         # Constrain yRange to xRange
         yRange = Window.y[(xStart[0])[0]:(xEnd[0])[0] + 1]
-
-#         print(Window.x)
-#         print(Window.SaveConnString)
-#         print(xRange)
-#         print(yRange)
 
         abs_slope, abs_intercept, r_value, p_value, std_err = \
             stats.linregress(xRange, yRange)
@@ -361,23 +375,36 @@ class CalcPanel():
 #             ideal_absId.append(ideal_abs_slope * self.Vg_range[x] +
 #                                ideal_abs_intercept)
 
-        mu_lin = (abs_slope * 1 * self.L) / (self.Vd * self.W * self.Ci)
+        mu_lin = (abs_slope * 1 * self.result_L) / (self.result_Vd * self.result_W * self.result_Ci)
+        print ("mu_lin : ", mu_lin)
         r_lin = ideal_abs_slope / abs_slope
+        print ("r_lin : ", r_lin)
+        
         Id_max = yRange[0]
         Id_min = yRange[-1]
-
         on_off = Id_max/Id_min
-        Vt = -abs_intercept/abs_slope
+        print ("on_off", on_off )
 
-        values = np.array([mu_lin, r_lin, on_off, Vt])
-        print(values)
-        # return values
+        Vt = -abs_intercept/abs_slope
+        print ("Threshold Voltage : ", Vt)
+
+        CalcPanel.values = np.array([mu_lin, r_lin, on_off, Vt])
+        
+        a=CalcPanel.values[0]
+        print (a)
+        return a
+
+        #codes to save the calculated values in .txt file
+        np.savetxt("filename", values, delimiter=" ", fmt="%s",
+        header='mu_lin, r_lin, on_off, Vt')
+
 
 
 class App(wx.App):
     def OnInit(self):
         win = Window(title="Transfer Curve Analysis using WxPYTHON",
-                     size=(1200, 650))
+                     size=(1200, 740))
+
         win.Centre()
         win.Show()
         return True
