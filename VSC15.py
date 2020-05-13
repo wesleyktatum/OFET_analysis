@@ -1,10 +1,21 @@
 import wx
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib.figure import Figure
+
+from matplotlib.widgets import RectangleSelector
+import matplotlib
+
+def line_select_callback(eclick, erelease):
+    'eclick and erelease are the press and release events'
+    x1, y1 = eclick.xdata, eclick.ydata
+    x2, y2 = erelease.xdata, erelease.ydata
+    print("(%3.2f, %3.2f) --> (%3.2f, %3.2f)" % (x1, y1, x2, y2))
+    print(" The button you used were: %s %s" % (eclick.button, erelease.button))
 
 class DataGen(object):
     
@@ -58,9 +69,6 @@ class MainWindow(wx.Frame):
 
         openFileDlgBtn.Bind(wx.EVT_BUTTON, self.onOpenFile)
 
-        
-
-
     def onOpenFile(self, event):
         self.condition = 1
         self.dirname = ''
@@ -69,31 +77,51 @@ class MainWindow(wx.Frame):
             self.filename = dlg.GetFilename()
             self.dirname = dlg.GetDirectory()
             self.fileName = os.path.join(self.dirname, self.filename)
+            print (self.fileName)
         dlg.Destroy()
+
+
         def draw(self):
-            if self.condition == 1:
+            
+            data = np.loadtxt(self.fileName, delimiter = '\t', skiprows = 2)
+            data = data [:,0:2]
                 
-                
-                data = np.loadtxt(self.fileName, delimiter = '\t', skiprows = 2)
-                data = data [:,0:2]
-                x = data[:, 0]
-                y = data[:, 1]
-                
-                self.figure = Figure(figsize=(5.5,4.5), frameon=True, constrained_layout=False)
-                self.axes = self.figure.add_subplot(111)
-                self.canvas = FigureCanvas(self, -1, self.figure)
-                self.canvas.Position=(25,75)
-                self.axes.set_title('Id Vg')
-                self.axes.set_xlabel("Vg (Volt)")
-                self.axes.set_ylabel("Id (Amps)")
-                self.axes.plot(x, y)
-                
-                
-            else:
-                pass
-        draw(self)
-        self.axes.plot(1,1)
-        return self.fileName
+            x = data[:, 0]
+            y = data[:, 1]
+
+            self.figure = Figure(figsize=(5,4), frameon=True, constrained_layout=False)
+            self.axes = self.figure.add_subplot(111)
+            self.canvas = FigureCanvas(self, -1, self.figure)
+            self.canvas.Position=(50,105)
+            self.axes.set_title('Id Vg')
+            self.axes.set_xlabel("Vg (Volt)")
+            self.axes.set_ylabel("Id (Amps)")
+            self.axes.plot(x, y, ".", )
+            
+            self.RS = RectangleSelector(self.axes,self.line_select_callback,
+                                           drawtype='box', useblit=True,
+                                           button=[1, 3],minspanx=5, minspany=5,
+                                           spancoords='pixels',
+                                           interactive=True,
+                                           rectprops = dict(facecolor='None',edgecolor='red',alpha=0.5,fill=False))
+
+        
+        
+        def line_select_callback(self, eclick, erelease):
+            'eclick and erelease are the press and release events'
+            x1, y1 = eclick.xdata, eclick.ydata
+            x2, y2 = erelease.xdata, erelease.ydata
+            self.zoom_axes=[x1,x2,y1,y2]
+            print (self.zoom_axes)
+            #self.parent.zoom_panel.Update(self)
+        
+        #draw(self)   
+
+        #return self.fileName
+
+        
+
+        
 
     def GetData(self, event):
         

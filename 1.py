@@ -8,13 +8,6 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
 import matplotlib
 
-import seaborn as seabornInstance 
-from sklearn.model_selection import train_test_split 
-from sklearn.linear_model import LinearRegression
-from sklearn import metrics 
-
-
-
 class Window(wx.Frame):
 
     def __init__(self, **kwargs):
@@ -71,6 +64,15 @@ class Window(wx.Frame):
         Window.x = data[:, 0]
         Window.y = data[:, 1]
         #print(Window.x,Window.y)
+
+        #self.figure = Figure(figsize=(5,4), frameon=True, constrained_layout=False)
+        #self.axes = self.figure.add_subplot(111)
+        #self.canvas = FigureCanvas(self, -1, self.figure)
+        #self.canvas.Position=(50,105)
+        #self.axes.set_title('Id Vg')
+        #self.axes.set_xlabel("Vg (Volt)")
+        #self.axes.set_ylabel("Id (Amps)")
+        #self.axes.plot(Window.x, Window.y, "." )
 
         RootPanel(self)
 
@@ -155,9 +157,9 @@ class CanvasPanel(wx.Panel):
         self.figure = Figure(figsize =(5,4))   
         self.axes = self.figure.add_subplot(111)
         self.parent=parent
-
+        
         self.canvas = FigureCanvas(self, -1, self.figure)
-        self.canvas.Position=(90,105)
+        self.canvas.Position=(50,105)
         self.axes.set_title('Id Vg')
         self.axes.set_xlabel("Vg (Volt)")
         self.axes.set_ylabel("Id (Amps)")
@@ -176,7 +178,7 @@ class CanvasPanel(wx.Panel):
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
         self.zoom_axes=[x1,x2,y1,y2]
-        #print ('Selection is from', x1,y1 , ' to ', x2,y2)
+        print ('Selection is from', x1,y1 , ' to ', x2,y2)
         
         self.parent.zoom_panel.Update(self)
 
@@ -189,28 +191,20 @@ class Zoom(wx.Panel):
     def Update(self,parent):
         #Load axis values of the selected rectangle
         zoom_axes=parent.zoom_axes
-        x1, x2, y1, y2 =(zoom_axes[0]),(zoom_axes[1]),(zoom_axes[2]),(zoom_axes[3])
-        
-        print (x1, x2)
-        print (y1, y2)
+        print('loaded axis value to the zoom class -  ', zoom_axes)
 
-
-        #Load all the values within the selected rectangle
-        s = pd.Series(Window.x)
-        zX = [x for x in Window.x if (x >= x1) & (x <= x2)]
-        print (s, zX)
-        
-        t = pd.Series(Window.y)
-        zY = [x for x in Window.y if (x >= y1) & (x <= y2)]
-        #print (t, zY)
-        
         #duplicate the plot from the main panel
         self.figure = Figure(figsize =(5,4))
         self.canvas = FigureCanvas(self, -1, self.figure)
         self.axes = self.figure.add_subplot(111)
-        
+
         #Apply axis of drawn rectangle to the plot
-        #self.axes.axis(zoom_axes)
+        self.axes.axis(zoom_axes)
+
+        #self.axes.plot(Window.x, Window.y, lw=3.5, c='b', alpha=.7)
+        #self.figure = Figure(figsize=(5,4), frameon=True, constrained_layout=False)
+        #self.axes = self.figure.add_subplot(111)
+        #self.canvas = FigureCanvas(self, -1, self.figure)
         self.canvas.Position=(50,105)
         self.axes.set_title('Id Vg')
         self.axes.set_xlabel("Vg (Volt)")
@@ -230,7 +224,6 @@ class Zoom(wx.Panel):
         regression_model = LinearRegression()
         #pass trhough the x_train &y_train data set to train the model
         regression_model.fit(zXr, zY)
-
         # get coefficient of our model and the intercept
         intercept = regression_model.intercept_
         coefficient = regression_model.coef_
@@ -247,8 +240,6 @@ class Zoom(wx.Panel):
         
         yline= coefficient * Window.x + intercept
         self.axes.plot(Window.x, yline, '-r')
-    
-        
 
         self.canvas.draw()
         self.Refresh()

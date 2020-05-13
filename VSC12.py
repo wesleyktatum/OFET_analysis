@@ -46,13 +46,13 @@ class MainWindow(wx.Frame):
         self.L = wx.TextCtrl(self, value="50", pos=(110,20), size=(200,-1))
         
         self.Wvalue = wx.StaticText(self, wx.ID_ANY, label="W", pos=(20,60))
-        self.W = wx.TextCtrl(self, value="", pos=(110,60), size=(200,-1))
+        self.W = wx.TextCtrl(self, value="1000", pos=(110,60), size=(200,-1))
         
         self.Civalue = wx.StaticText(self,wx.ID_ANY , label="Ci", pos=(20,100))
-        self.Ci = wx.TextCtrl(self, value="", pos=(110,100), size=(200,-1))
+        self.Ci = wx.TextCtrl(self, value="11.5e-9", pos=(110,100), size=(200,-1))
 
         self.Vdvalue = wx.StaticText(self,wx.ID_ANY , label="Vd", pos=(20,140))
-        self.Vd = wx.TextCtrl(self, value="", pos=(110,140), size=(200,-1))
+        self.Vd = wx.TextCtrl(self, value="-20", pos=(110,140), size=(200,-1))
 
         self.Tvalue = wx.StaticText(self,wx.ID_ANY , label="Type", pos=(20,180))
         self.Type = wx.ComboBox(self, choices = ['p - Type', 'n - Type', 'Ambipolar'], pos=(110,180), size=(200,-1))
