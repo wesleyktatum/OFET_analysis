@@ -42,8 +42,6 @@ class Window(wx.Frame):
         self.btnSave = wx.Button(self, -1, "SAVE", pos=(220, 20))
         self.btnHelp = wx.Button(self, -1, "HELP", pos=(320, 20))
         
-#         self.btnInp = wx.Button(self, -1, "Save", pos=(90, 380))
-        
         # These are the buttons at bottoms of the frame for other functions
         self.btnCal = wx.Button(self, -1, "Calculate", pos=(590, 560))
         self.btnRes = wx.Button(self, -1, "Reset", pos=(690, 560))
@@ -59,14 +57,13 @@ class Window(wx.Frame):
 
         # binding my buttons in this section of code
         self.btnOpen.Bind(wx.EVT_BUTTON, self.onOpenFile)
-#         self.btnInp.Bind(wx.EVT_BUTTON, self.GetData)
         self.btnExi.Bind(wx.EVT_BUTTON, self.OnClose)
         self.btnRes.Bind(wx.EVT_BUTTON, self.OnReset)
         self.btnCal.Bind(wx.EVT_BUTTON, self.GetResult)
         self.btnHelp.Bind(wx.EVT_BUTTON, self.onHelp)
         self.btnSave.Bind(wx.EVT_BUTTON, self.onSave)
 
-        Window.params = [50, 1000, 1, -12, 'p - type']
+        Window.params = [5e-5, 1e-3, 1.1e-8, -20, 'p - type']
         Window.calc_values = []
         
         InputDialog(self, Window.params)
@@ -92,10 +89,6 @@ class Window(wx.Frame):
 
         self.root = RootPanel(self)
 
-    # input values for L, W, Ci, Vd, Type
-    def GetData(self, event):
-        InputDialog(parameters=Window.params, parent=self)
-
     # Function to quit the main screen
     def OnClose(self, event):
         self.Destroy()
@@ -115,7 +108,7 @@ class Window(wx.Frame):
         # wx.StaticText(self, -1, label="r_lin : ", pos=(340, 600))
         # wx.StaticText(self, -1, label="on/off : ", pos=(540, 600))
         # wx.StaticText(self, -1, label="Vth : ", pos=(740, 600))
-
+#         CalcPanel.calculate_linear_output
         # print the results on the frame
         mu_lin = str(Window.calc_values[0])
         r_lin = str(Window.calc_values[1])
@@ -327,25 +320,23 @@ class InputDialog(wx.Panel):
         self.Type = wx.ComboBox(self,
                                 choices=['p-Type', 'n-Type', 'Ambipolar'],
                                 pos=(20, 310), size=(130, -1))
-        # creating and linking Save and Exit buttons
+        # creating and linking Save and Reset buttons
+        self.resetButton = wx.Button(self, wx.ID_ANY, label="Reset",
+                                    pos=(55, 390))
         self.saveButton = wx.Button(self, wx.ID_ANY, label="Save",
                                     pos=(55, 350))
         
-#         self.SaveConnString
+        self.resetButton.Bind(wx.EVT_BUTTON, self.OnReset)
         self.saveButton.Bind(wx.EVT_BUTTON, self.SaveConnString)
 
-#         self.closeButton = wx.Button(self, label="Cancel", pos=(210, 240))
-#         self.closeButton.Bind(wx.EVT_BUTTON, self.OnClose)
-
-#         self.Centre()
         self.Show()
 
     # save values
     def SaveConnString(self, event):
-        self.result_L = self.L.GetValue()
-        self.result_W = self.W.GetValue()
-        self.result_Ci = self.Ci.GetValue()
-        self.result_Vd = self.Vd.GetValue()
+        self.result_L = float(self.L.GetValue())
+        self.result_W = float(self.W.GetValue())
+        self.result_Ci = float(self.Ci.GetValue())
+        self.result_Vd = float(self.Vd.GetValue())
         self.result_Type = self.Type.GetValue()
 
         print('L: ', self.result_L)
@@ -357,11 +348,10 @@ class InputDialog(wx.Panel):
         Window.params = [self.result_L, self.result_W, self.result_Ci,
                          self.result_Vd, self.result_Type]
 
-#         self.Destroy()
-
     # close event
-    def OnClose(self, e):
-        self.Destroy()
+    def OnReset(self, e):
+        Window.params = [50, 1000, 1, -12, 'p - type']
+        print(Window.params)
 
 
 class CalcPanel():
@@ -405,16 +395,17 @@ class CalcPanel():
             stats.linregress(self.Vg_range, self.absId_range)
 
         # calculate the return values
-        mu_lin = (abs_slope * 1 * self.L) / (self.Vd * self.W * self.Ci)
+        mu_lin = (abs_slope * self.L) / (self.Vd * self.W * self.Ci)
         r_lin = ideal_abs_slope / abs_slope
         Id_max = yRange[0]
         Id_min = yRange[-1]
 
-        on_off = Id_max / Id_min
+        on_off = Id_min / Id_max
         Vt = -abs_intercept / abs_slope
 
         values = np.array([mu_lin, r_lin, on_off, Vt])
         print('[µ_lin, r_lin, on_off, Vt]:', values)
+        print(self.params)
 
         # return values
         Window.calc_values = values
